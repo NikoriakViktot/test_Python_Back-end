@@ -1,0 +1,4 @@
+requests
+flask-restful
+virtualenv
+python-dotenv
