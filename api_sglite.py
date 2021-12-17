@@ -93,7 +93,7 @@ with sq.connect('city_weather.db') as con:
 
 
     # requests_city(url)
-    save_city_db(requests_city(url))
+    # save_city_db(requests_city(url))
 
 
 DATA = requests.get(f"https://api.openweathermap.org/data/2.5/onecall?lat=33.44&lon=-94.04&exclude=&appid={API_KEY}&units=metric&lang=ua")
