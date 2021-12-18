@@ -4,3 +4,4 @@ lxml
 flask-restful
 virtualenv
 python-dotenv
+asyncio

@@ -3,6 +3,7 @@ import json
 from config import API_KEY
 import requests
 import sqlite3 as sq
+import time
 
 
 
@@ -22,7 +23,8 @@ def conect_city():
 
 def reguests_api_openweather():
     # coord = collections.namedtuple('cord', ['lat', 'lon'])
-    coord = [(x[0],x[2],x[3]) for x in conect_city()]
+    coord = [(x[0],x[2],x[3])[0:5] for x in conect_city()]
+
     for x in coord:
         id = x[0]
         lat = x[1]
@@ -30,39 +32,52 @@ def reguests_api_openweather():
         data = requests.get(f"https://api.openweathermap.org/data/2.5/onecall?"
                     f"lat={lat}&lon={lon}&"
                     f"exclude=&appid={API_KEY}&units=metric&lang=ua")
-        print(data)
+        print(data)# response 409 забагато запросів до сервера
         api_weather = data.json().get('daily')
-        for x in api_weather:
-            dict_api = dict(x)
-            td = dict(id=id,dt=dict_api.get('dt'))
-            temp = dict(id=id, temp=dict_api.get('temp'))
-            clouds = dict(id=id, clouds=dict_api.get('clouds'))
-            pressure = dict(id=id, pressure=dict_api.get('pressure'))
-            humidity = dict(id=id, humidity=dict_api.get('humidity'))
-            if dict_api.get("raine")!=None:
-                raine = dict(id=id, raine=dict_api.get('raine'))
-            else:
-                raine = None
-            if dict_api.get('snow') !=None:
-                snow = dict(id=id, snow=dict_api.get('snow'))
-            else:
-                snow = None
+        time.sleep(5)
+        yield id, api_weather
 
-            return [td.items(), temp, clouds.items(),
-                    pressure.items(), humidity.items(),
-                    raine.items(), snow.items()]
+
+
+
 
 
 
 
 def save_db_weather():
-    td = reguests_api_openweather()[0]
-    temp = reguests_api_openweather()[1]
-    clouds = reguests_api_openweather()[2]
-    pressure = reguests_api_openweather()[3]
-    humidity = reguests_api_openweather()[4]
-    raine = reguests_api_openweather()[5]
-    snow = reguests_api_openweather()[6]
+    for x in reguests_api_openweather():
+        id_city = x[0]
+        print(id_city)
+        dict_api = x[1][1]
+        print(dict_api)
+        td = dict_api.get('dt')
+        temp = dict_api.get('temp')
+        clouds =dict_api.get('clouds')
+        pressure = dict_api.get('pressure')
+        humidity = dict_api.get('humidity')
+        if dict_api.get("rain") != None:
+            rain = dict_api.get('rain')
+        else:
+            rain = None
+        if dict_api.get('snow') != None:
+            snow = dict_api.get('snow')
+        else:
+            snow = None
+    #
+    # td = reguests_api_openweather()[0]
+    # print(td)
+    # temp = reguests_api_openweather()[1]
+    # print(temp)
+    # clouds = reguests_api_openweather()[2]
+    # print(clouds)
+    # pressure = reguests_api_openweather()[3]
+    # print(pressure)
+    # humidity = reguests_api_openweather()[4]
+    # print(humidity)
+    # raine = reguests_api_openweather()[5]
+    # print(raine)
+    # snow = reguests_api_openweather()[6]
+    # print(snow)
 
     # with sq.connect('city_weather.db') as con:
     #      cur = con.cursor()
