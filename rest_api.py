@@ -18,3 +18,17 @@
 # 	return – значення вибраного параметру перераховане за алгоритмом ковзного
 # середнього (moving average) для вибраного міста для всіх дат в форматі json
 #
+from flask import Flask
+from flask_restful import Resource, Api
+
+app = Flask(__name__)
+api = Api(app)
+
+class HelloWorld(Resource):
+    def get(self):
+        return {'hello': 'world'}
+
+api.add_resource(HelloWorld, '/')
+
+if __name__ == '__main__':
+    app.run(debug=True)
