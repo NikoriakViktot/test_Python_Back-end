@@ -1,13 +1,10 @@
-import collections
-import json
+
 from config import API_KEY
 import requests
 import sqlite3 as sq
 import time
 import jmespath
 import statistics
-
-
 
 # Отримані дані помістити в sqlite базу даних.
 # Таблиці в базі даних повинні мати такі стовбці:
@@ -35,7 +32,6 @@ def reguests_api_openweather():
                     f"exclude=&appid={API_KEY}&units=metric&lang=ua")
         print(data)# response 409 забагато запросів до сервера
         api_weather = data.json().get('daily')
-        print(api_weather)
         time.sleep(5)
         yield id, api_weather
 
@@ -45,7 +41,6 @@ def pars_weather():
         id_city = x[0]
         list_weather = x[1]
         for dict_api in list_weather:
-            print(dict_api)
             date = dict_api.get('dt')
             temp_mean = round(statistics.fmean([jmespath.search('temp.eve', dict_api),
                                                 jmespath.search('temp.night', dict_api),

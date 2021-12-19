@@ -59,14 +59,6 @@ def reguests_api_openweather():
 
 
 
-def save_db_weather():
-    td = reguests_api_openweather()[0]
-    temp = reguests_api_openweather()[1]
-    clouds = reguests_api_openweather()[2]
-    pressure = reguests_api_openweather()[3]
-    humidity = reguests_api_openweather()[4]
-    raine = reguests_api_openweather()[5]
-    snow = reguests_api_openweather()[6]
 
     # with sq.connect('city_weather.db') as con:
     #      cur = con.cursor()
