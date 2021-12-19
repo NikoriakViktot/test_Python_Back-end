@@ -4,6 +4,8 @@ from config import API_KEY
 import requests
 import sqlite3 as sq
 import time
+import jmespath
+import statistics
 
 
 
@@ -23,8 +25,7 @@ def conect_city():
 
 def reguests_api_openweather():
     # coord = collections.namedtuple('cord', ['lat', 'lon'])
-    coord = [(x[0],x[2],x[3])[0:5] for x in conect_city()]
-
+    coord = [(x[0],x[2],x[3]) for x in conect_city()]
     for x in coord:
         id = x[0]
         lat = x[1]
@@ -34,66 +35,62 @@ def reguests_api_openweather():
                     f"exclude=&appid={API_KEY}&units=metric&lang=ua")
         print(data)# response 409 забагато запросів до сервера
         api_weather = data.json().get('daily')
+        print(api_weather)
         time.sleep(5)
         yield id, api_weather
 
 
-
-
-
-
-
-
-def save_db_weather():
+def pars_weather():
     for x in reguests_api_openweather():
         id_city = x[0]
-        print(id_city)
-        dict_api = x[1][1]
-        print(dict_api)
-        td = dict_api.get('dt')
-        temp = dict_api.get('temp')
-        clouds =dict_api.get('clouds')
-        pressure = dict_api.get('pressure')
-        humidity = dict_api.get('humidity')
-        if dict_api.get("rain") != None:
-            rain = dict_api.get('rain')
-        else:
-            rain = None
-        if dict_api.get('snow') != None:
-            snow = dict_api.get('snow')
-        else:
-            snow = None
-    #
-    # td = reguests_api_openweather()[0]
-    # print(td)
-    # temp = reguests_api_openweather()[1]
-    # print(temp)
-    # clouds = reguests_api_openweather()[2]
-    # print(clouds)
-    # pressure = reguests_api_openweather()[3]
-    # print(pressure)
-    # humidity = reguests_api_openweather()[4]
-    # print(humidity)
-    # raine = reguests_api_openweather()[5]
-    # print(raine)
-    # snow = reguests_api_openweather()[6]
-    # print(snow)
-
-    # with sq.connect('city_weather.db') as con:
-    #      cur = con.cursor()
-    #      cur.execute(''' INSERT INTO forecast
-    #                   (id_city, city, lat, lon)
-    #                   VALUES(?,?,?,?)''' )
-    #      con.commit()
+        list_weather = x[1]
+        for dict_api in list_weather:
+            print(dict_api)
+            date = dict_api.get('dt')
+            temp_mean = round(statistics.fmean([jmespath.search('temp.eve', dict_api),
+                                                jmespath.search('temp.night', dict_api),
+                                                jmespath.search('temp.morn', dict_api),
+                                                jmespath.search('temp.day', dict_api)]), 1)
+            clouds =dict_api.get('clouds')
+            pressure = dict_api.get('pressure')
+            humidity = dict_api.get('humidity')
+            wind_speed = dict_api.get('wind_speed')
+            if dict_api.get("rain") != None:
+                rain = dict_api.get('rain')
+            else:
+                rain = 0
+            if dict_api.get('snow') != None:
+                snow = dict_api.get('snow')
+            else:
+                snow = 0
+            pcp = round(rain + snow, 2)
+            yield (date, temp_mean, pcp,
+               clouds, pressure,
+               humidity, wind_speed, id_city)
 
 
 
+def save_db_weather(weather):
+    with sq.connect('city_weather.db') as con:
+        cur = con.cursor()
+        id = 0
+        for i in weather:
+            data = list(i[:])
+            id+=1
+            data.insert(0,id)
+            print(data)
+            cur.execute('PRAGMA foreign_keys = ON')
+            cur.execute(''' INSERT INTO forecast
+                    (id, date, temp,
+                    pcp, clouds, pressure,
+                    humidity,wind_speed,
+                    city_id)
+                    VALUES(?,?,?,?,?,?,?,?,?)''', data)
+            con.commit()
 
-
-
-
-reguests_api_openweather()
-save_db_weather()
+if __name__ == '__main__':
+    reguests_api_openweather()
+    save_db_weather(pars_weather())
 
 
 

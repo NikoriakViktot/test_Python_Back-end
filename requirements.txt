@@ -5,3 +5,4 @@ flask-restful
 virtualenv
 python-dotenv
 asyncio
+jmespath
