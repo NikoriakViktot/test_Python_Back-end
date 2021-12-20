@@ -4,23 +4,12 @@ import sqlite3 as sq
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 import jmespath
-
+import datetime
+import time
 
 app = Flask(__name__)
 api = Api(app)
 client = app.test_client()
-
-# parser.add_argument('value_type', type=str)
-# parser.add_argument('city', type=str)
-
-# value_types = args['value_type']
-# print(value_types)
-#
-#
-# citis = args['city']
-# print(citis)
-# value_type = " "
-# city = " "
 
 
 # 	/cities GET
@@ -58,6 +47,7 @@ class Mean(Resource):
                 'value_type': params["value_type"],
                 'city': params["city"]
                      }
+
         with sq.connect('city_weather.db') as con:
             value_type= jmespath.search('value_type',request_get)
             city = jmespath.search('city',request_get)
@@ -92,21 +82,35 @@ class Forecast(Resource):
                 'end_dt': params["end_dt"],
                 'city': params["city"]
                      }
+        print(request_get)
         with sq.connect('city_weather.db') as con:
-            start_dt= jmespath.search('start_dt',request_get)
-            end_dt = jmespath.search('end_dt', request_get)
+            start_dt_get= jmespath.search('start_dt',request_get)
+            end_dt_get = jmespath.search('end_dt', request_get)
             city = jmespath.search('city',request_get)
+            # # start_dt_get
+            # t = (2021, 12, 25, 10, 00, 00, 0, 000, 0)
+            # tx = time.mktime(t)
+            # start_dt =''
+            # end_dt = ''
+            # print(int(tx))
 
             cur = con.cursor()
             cur.execute('PRAGMA foreign_keys = ON')
-            cur.execute(f'''SELECT city,  as mean FROM forecast
-                        JOIN city ON forecast.city_id ==  city.id
-                        WHERE city.id = (SELECT city.id FROM city  WHERE city="{city}")''')
-            mean_select = cur.fetchone()
-            mean_value = round(mean_select[1])
-            city_select = mean_select[0]
-            json_mean = {'value_type': value_type, 'mean': mean_value, 'city': city_select}
-            return json_mean
+            cur.execute(f'''SELECT city,  date(date,'unixepoch') as date,
+                           temp, pcp, clouds, pressure, humidity,
+                           wind_speed  FROM forecast
+                           JOIN city ON forecast.city_id ==  city.id
+                           WHERE city.id = (SELECT city.id FROM city  WHERE city="{city}")
+                           WHERE date(datetime(date, 'unixepoch'))
+                           BETWEEN "{start_dt}" and "{end_dt}"
+                                                             ''')
+            forecast_select = cur.fetchall()
+            print(forecast_select)
+            # mean_value = round(mean_select[1])
+            # # city_select = mean_select[0]
+            # json_mean = {'city': city_select,'start_dt': start_dt, 'end_dt': end_dt,
+            #              'forecast': city_select}
+            # return json_mean
 
 
 
