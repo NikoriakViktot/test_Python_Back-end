@@ -1,8 +1,10 @@
 requests
 beautifulsoup4
 lxml
+Flask
 flask-restful
 virtualenv
 python-dotenv
 asyncio
 jmespath
+marshmallow

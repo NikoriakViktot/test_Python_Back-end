@@ -19,14 +19,32 @@ import sqlite3 as sq
 #
 #
 #         print(serialized)
-def mean():
-    value_type = input("")
+def get():
     with sq.connect('city_weather.db') as con:
+        # con.row_factory = sq.Row
         cur = con.cursor()
-        cur.execute(f"SELECT {value_type} FROM weather")
-cities()
+        # value_type = ['temp', 'pcp', 'clouds', 'pressure', 'humidity', 'wind_speed']
+        value_type = "pcp"
+        city = "Чернівці"
+        cur.execute('PRAGMA foreign_keys = ON')
+        cur.execute(f'''SELECT city, avg({value_type}) as mean FROM forecast
+                    JOIN city ON forecast.city_id ==  city.id
+                    WHERE city.id = (SELECT city.id FROM city  WHERE city="{city}")''')
+        mean_select = cur.fetchone()
+        mean_value = round(mean_select[1])
+        city_select = mean_select[0]
+        json_mean ={'value_type': value_type, 'mean': mean_value, 'city': city_select}
+        return json_mean
 
-p = get('http://localhost:5000/cities').json()
-print(p)
+print(get())
+
+#
+# p = get('http://localhost:5000/cities').json()
+# print(p)
+#
+import jmespath
+d = {'value_type': 'temp', 'city': 'Київ'}
+print(jmespath.search('value_type',d))
 
 
+#
