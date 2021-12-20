@@ -101,7 +101,7 @@ class Forecast(Resource):
                            wind_speed  FROM forecast
                            JOIN city ON forecast.city_id ==  city.id
                            WHERE city.id = (SELECT city.id FROM city  WHERE city="{city}")
-                           WHERE date(datetime(date, 'unixepoch'))
+                           AND date(datetime(date, 'unixepoch'))
                            BETWEEN "{start_dt}" and "{end_dt}"
                                                              ''')
             forecast_select = cur.fetchall()
