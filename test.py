@@ -64,14 +64,17 @@ with sq.connect('city_weather.db') as con:
 
     cur = con.cursor()
     cur.execute('PRAGMA foreign_keys = ON')
-    cur.execute(f'''SELECT city,  date(date,'unixepoch') as date,
-                              temp, pcp, clouds, pressure, humidity,
-                              wind_speed  FROM forecast
-                              JOIN city ON forecast.city_id ==  city.id
-                              WHERE city.id = (SELECT city.id FROM city  WHERE city="Чернівці")
-                              WHERE date(datetime(date, 'unixepoch'))
-                              BETWEEN 2021-12-22 and 2021-12-25
+    cur.execute(f'''SELECT date(date,'unixepoch') as date,
+        temp, pcp, clouds, pressure, humidity,
+	  wind_speed , city FROM forecast
+	 JOIN city ON forecast.city_id ==  city.id
+	 WHERE city.id == (SELECT city.id FROM city  WHERE city="Чернівці")
+	 AND (date(datetime(date, 'unixepoch')) 
+	 BETWEEN "2021-12-22" and "2021-12-24" )
                                                                 ''')
+
+    forecast_select = cur.fetchall()
+    print(forecast_select)
 #     SELECT
 #     date(date, 'unixepoch') as date,
 #     temp, pcp, clouds, pressure, humidity,
@@ -88,5 +91,3 @@ with sq.connect('city_weather.db') as con:
 # BETWEEN
 # "2021-12-22" and "2021-12-24" )
 
-forecast_select = cur.fetchall()
-    print(forecast_select)
