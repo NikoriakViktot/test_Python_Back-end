@@ -9,3 +9,5 @@ asyncio
 jmespath
 marshmallow
 pydantic
+numpy
+pandas
