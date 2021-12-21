@@ -146,7 +146,6 @@ class Moving(Resource):
             d = pd.Series(data)
             moving_mean= d.rolling(4).mean()
             city_select = moving_mean_select[0]
-            print(city_select)
             json_mean = {'city': city_select, 'value_type': value_type, 'moving_mean': moving_mean}
             return json_mean
 # jjjj
