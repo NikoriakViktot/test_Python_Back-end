@@ -149,7 +149,7 @@ class Moving(Resource):
             print(city_select)
             json_mean = {'city': city_select, 'value_type': value_type, 'moving_mean': moving_mean}
             return json_mean
-
+# jjjj
 
 
 api.add_resource(Cities, '/cities')
