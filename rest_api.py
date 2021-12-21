@@ -34,9 +34,6 @@ class Cities(Resource):
     # 		value_type – одне з [temp, pcp, clouds, pressure, humidity, wind_speed]
     # 		city – назва міста
     # 	return – середнє значення вибраного параметру для вибраного міста в форматі json
-
-
-
 class Mean(Resource):
     def get(self):
         parser = reqparse.RequestParser()
@@ -111,12 +108,7 @@ class Forecast(Resource):
 
 
 
-
-
-
-
-
-# 	/moving_mean
+ 	# /moving_mean
 # 		value_type – одне з [temp, pcp, clouds, pressure, humidity, wind_speed]
 # 		city – назва міста
 # 	return – значення вибраного параметру перераховане за алгоритмом ковзного
@@ -142,14 +134,15 @@ class Moving(Resource):
                         WHERE city.id = (SELECT city.id FROM city  WHERE city='{city}')''')
 
             moving_mean_select = cur.fetchall()
-            for x in moving_mean_select:
-                print(x)
-            print(moving_mean_select)
-            data = np.array([x[3] for x in moving_mean_select])
+            data_values = [x[2] for x in moving_mean_select]
+            data = np.array(data_values)
             d = pd.Series(data)
-            moving_mean= d.rolling(4).mean()
+            moving_mean_panda= d.rolling(3,min_periods=1).mean()
+            moving_mean = [ x  for x in  moving_mean_panda ]
+            # print(moving_mean)
             city_select = moving_mean_select[0]
-            json_mean = {'city': city_select, 'value_type': value_type, 'moving_mean': moving_mean}
+            # , 'moving_mean': moving_mean
+            json_mean = {'city': city, 'value_type': value_type, 'moving_mean': moving_mean}
             return json_mean
 # jjjj
 
