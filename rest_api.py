@@ -54,9 +54,10 @@ class Mean(Resource):
             # con.row_factory = sq.Row
             cur = con.cursor()
             cur.execute('PRAGMA foreign_keys = ON')
-            cur.execute(f'''SELECT city, avg({value_type}) as mean FROM forecast
+            qeury = f'''SELECT city, avg({value_type}) as mean FROM forecast
                         JOIN city ON forecast.city_id ==  city.id
-                        WHERE city.id = (SELECT city.id FROM city  WHERE city="{city}")''')
+                        WHERE city.id = (SELECT city.id FROM city  WHERE city='{city}')'''
+            cur.execute(qeury)
             mean_select = cur.fetchone()
             mean_value = round(mean_select[1])
             city_select = mean_select[0]
@@ -77,6 +78,7 @@ class Forecast(Resource):
         parser.add_argument("end_dt")
         parser.add_argument("city")
         params = parser.parse_args()
+        print(params)
         request_get={
                 'start_dt': params["start_dt"],
                 'end_dt': params["end_dt"],
@@ -84,33 +86,32 @@ class Forecast(Resource):
                      }
         print(request_get)
         with sq.connect('city_weather.db') as con:
-            start_dt_get= jmespath.search('start_dt',request_get)
-            end_dt_get = jmespath.search('end_dt', request_get)
+            start_dt= jmespath.search('start_dt',request_get)
+            print(type(start_dt))
+            end_dt = jmespath.search('end_dt', request_get)
             city = jmespath.search('city',request_get)
-            # # start_dt_get
-            # t = (2021, 12, 25, 10, 00, 00, 0, 000, 0)
-            # tx = time.mktime(t)
-            # start_dt =''
-            # end_dt = ''
-            # print(int(tx))
 
+            con.row_factory = sq.Row
             cur = con.cursor()
             cur.execute('PRAGMA foreign_keys = ON')
             cur.execute(f'''SELECT city,  date(date,'unixepoch') as date,
                            temp, pcp, clouds, pressure, humidity,
                            wind_speed  FROM forecast
                            JOIN city ON forecast.city_id ==  city.id
-                           WHERE city.id = (SELECT city.id FROM city  WHERE city="{city}")
-                           AND date(datetime(date, 'unixepoch'))
-                           BETWEEN "{start_dt}" and "{end_dt}"
-                                                             ''')
+                           WHERE city.id = (SELECT city.id FROM city  WHERE city='{city}')
+                           AND (date(datetime(date, 'unixepoch'))
+                           BETWEEN '{start_dt}' and '{end_dt}' )''')
+
             forecast_select = cur.fetchall()
-            print(forecast_select)
-            # mean_value = round(mean_select[1])
-            # # city_select = mean_select[0]
-            # json_mean = {'city': city_select,'start_dt': start_dt, 'end_dt': end_dt,
-            #              'forecast': city_select}
-            # return json_mean
+            json_forecast = { 'forecast':{'temp': [x['temp'] for  x in forecast_select],
+                         'pcp': [x['pcp'] for x in forecast_select],
+                         'clouds': [x['clouds'] for x in forecast_select],
+                         'pressure': [x['pressure'] for x in forecast_select],
+                         'humidity': [x['humidity'] for x in forecast_select],
+                         'wind_speed': [x['wind_speed'] for x in forecast_select]}}
+
+
+
 
 
 
@@ -123,9 +124,10 @@ class Forecast(Resource):
 #
 api.add_resource(Cities, '/cities')
 api.add_resource(Mean, '/mean' )
-api.add_resource(Forecast, '/forecast' )
+api.add_resource(Forecast, '/forecast')
 
 if __name__ == '__main__':
     app.run(debug=True)
-    s = Mean.get()
-    print(s)
+    f = Forecast()
+    print(f.get())
+
