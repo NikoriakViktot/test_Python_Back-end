@@ -134,7 +134,7 @@ class Moving(Resource):
         with sq.connect('city_weather.db') as con:
             value_type = jmespath.search('value_type', request_get)
             city = jmespath.search('city',request_get)
-            # con.row_factory = sq.Row
+            con.row_factory = sq.Row
             cur = con.cursor()
             cur.execute('PRAGMA foreign_keys = ON')
             cur.execute( f'''SELECT city,date(date,'unixepoch') as date, {value_type} as mean FROM forecast
@@ -142,6 +142,9 @@ class Moving(Resource):
                         WHERE city.id = (SELECT city.id FROM city  WHERE city='{city}')''')
 
             moving_mean_select = cur.fetchall()
+            for x in moving_mean_select:
+                print(x)
+            print(moving_mean_select)
             data = np.array([x[3] for x in moving_mean_select])
             d = pd.Series(data)
             moving_mean= d.rolling(4).mean()
